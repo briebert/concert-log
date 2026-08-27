@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Encore — Concert Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16171c;
+    --ink-soft:#1f2128;
+    --paper:#f3ead6;
+    --paper-shadow:#e3d7ba;
+    --marquee:#e8a33d;
+    --velvet:#8a3a45;
+    --text-ink:#f3ead6;
+    --text-paper:#221f1a;
+    --line:#c9bd9f;
+    --muted:#8a8368;
+    --font-display:'Bebas Neue', sans-serif;
+    --font-body:'Work Sans', sans-serif;
+    --font-mono:'Space Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--ink);
+    background-image:
+      radial-gradient(circle at 20% 0%, rgba(232,163,61,0.07), transparent 40%),
+      radial-gradient(circle at 90% 30%, rgba(138,58,69,0.08), transparent 45%);
+    color:var(--text-ink);
+    font-family:var(--font-body);
+    min-height:100vh;
+  }
+  .app{max-width:920px;margin:0 auto;padding:2.5rem 1.25rem 5rem;}
+
+  /* ---------- Hero ---------- */
+  .hero{margin-bottom:2rem;}
+  .hero-top{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+  .wordmark{
+    font-family:var(--font-display);
+    font-size:clamp(3rem,9vw,5rem);
+    letter-spacing:0.04em;
+    color:var(--marquee);
+    margin:0;
+    line-height:0.85;
+    text-shadow:0 0 22px rgba(232,163,61,0.35);
+  }
+  .tagline{
+    margin:0.35rem 0 0.75rem;
+    color:var(--line);
+    font-size:0.95rem;
+    letter-spacing:0.02em;
+  }
+  .stats{font-family:var(--font-mono);font-size:0.85rem;color:var(--marquee);}
+
+  /* ---------- Buttons ---------- */
+  button, .btn-ghost{font-family:var(--font-body);cursor:pointer;border:none;}
+  .btn-marquee{
+    background:var(--marquee);
+    color:var(--ink);
+    font-weight:700;
+    padding:0.65rem 1.1rem;
+    border-radius:3px;
+    font-size:0.92rem;
+    letter-spacing:0.01em;
+    transition:transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .btn-marquee:hover{box-shadow:0 4px 14px rgba(232,163,61,0.4);}
+  .btn-ghost{
+    background:transparent;
+    color:var(--text-ink);
+    border:1px solid var(--line);
+    padding:0.55rem 0.9rem;
+    border-radius:3px;
+    font-size:0.85rem;
+    display:inline-flex;
+    align-items:center;
+    gap:0.4rem;
+  }
+  .btn-ghost:hover{border-color:var(--marquee);color:var(--marquee);}
+  .btn-text{background:none;color:var(--line);font-size:0.85rem;text-decoration:underline;}
+  .btn-text.danger{color:var(--velvet);}
+  button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible{
+    outline:2px solid var(--marquee);
+    outline-offset:2px;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .btn-marquee, .stub-card{transition:none !important;}
+  }
+
+  /* ---------- Toolbar ---------- */
+  .toolbar{
+    display:flex;flex-wrap:wrap;gap:0.6rem;align-items:center;
+    margin-bottom:1.75rem;
+    padding-bottom:1.25rem;
+    border-bottom:1px dashed var(--line);
+  }
+  #searchInput, #sortSelect{
+    background:var(--ink-soft);
+    border:1px solid var(--line);
+    color:var(--text-ink);
+    padding:0.55rem 0.75rem;
+    border-radius:3px;
+    font-family:var(--font-body);
+    font-size:0.88rem;
+  }
+  #searchInput{flex:1 1 220px;min-width:180px;}
+  .toolbar-actions{display:flex;gap:0.5rem;margin-left:auto;flex-wrap:wrap;}
+  .file-label{position:relative;}
+
+  /* ---------- List / Empty ---------- */
+  .list{display:flex;flex-direction:column;gap:1rem;}
+  .empty-state, .no-match{
+    text-align:center;
+    padding:3rem 1rem;
+    color:var(--line);
+    border:1px dashed var(--line);
+    border-radius:6px;
+  }
+  .empty-state p, .no-match p{margin:0 0 1rem;font-size:1rem;}
+
+  /* ---------- Ticket stub card ---------- */
+  .stub-card{
+    display:grid;
+    grid-template-columns:1fr 18px 92px;
+    background:var(--paper);
+    color:var(--text-paper);
+    border-radius:6px;
+    box-shadow:0 3px 10px rgba(0,0,0,0.35);
+    overflow:hidden;
+    cursor:pointer;
+    transition:transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .stub-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.45);}
+
+  .stub-info{padding:1rem 1.1rem;min-width:0;}
+  .stub-headliner{
+    font-family:var(--font-display);
+    font-size:1.5rem;
+    letter-spacing:0.02em;
+    line-height:1;
+    margin:0 0 0.3rem;
+  }
+  .stub-openers{font-size:0.82rem;color:var(--muted);margin:0 0 0.4rem;}
+  .stub-venue{font-size:0.92rem;font-weight:600;margin:0;}
+  .stub-city{font-size:0.82rem;color:var(--muted);margin:0 0 0.4rem;}
+  .stub-tour{font-size:0.78rem;font-style:italic;color:var(--muted);}
+  .stub-rating{margin:0.3rem 0;color:var(--velvet);letter-spacing:0.05em;}
+  .stub-notes{font-size:0.82rem;color:#4a4638;margin-top:0.35rem;white-space:pre-wrap;}
+
+  .stub-perf{
+    position:relative;
+    border-left:2px dashed var(--line);
+  }
+  .stub-perf::before, .stub-perf::after{
+    content:"";
+    position:absolute;
+    left:-7px;
+    width:14px;height:14px;
+    background:var(--ink);
+    border-radius:50%;
+  }
+  .stub-perf::before{top:-7px;}
+  .stub-perf::after{bottom:-7px;}
+
+  .stub-tear{
+    background:var(--ink);
+    color:var(--text-ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:0.5rem 0.25rem;
+    text-align:center;
+  }
+  .stub-month{font-family:var(--font-mono);font-size:0.7rem;letter-spacing:0.08em;color:var(--marquee);}
+  .stub-day{font-family:var(--font-display);font-size:1.9rem;line-height:1;}
+  .stub-year{font-family:var(--font-mono);font-size:0.68rem;color:var(--line);}
+  .stub-no{font-family:var(--font-mono);font-size:0.62rem;color:var(--muted);margin-top:0.4rem;}
+
+  @media (max-width:600px){
+    .stub-card{grid-template-columns:1fr;}
+    .stub-perf{border-left:none;border-top:2px dashed var(--line);}
+    .stub-perf::before{left:-7px;top:-7px;}
+    .stub-perf::after{left:auto;right:-7px;top:-7px;bottom:auto;}
+    .stub-tear{flex-direction:row;gap:0.5rem;justify-content:center;padding:0.5rem;}
+    .stub-no{margin-top:0;}
+  }
+
+  /* ---------- Dialog / form ---------- */
+  dialog{
+    border:none;border-radius:8px;padding:0;
+    background:var(--ink-soft);color:var(--text-ink);
+    width:min(560px, 92vw);
+    box-shadow:0 20px 60px rgba(0,0,0,0.6);
+  }
+  dialog::backdrop{background:rgba(10,10,12,0.7);}
+  #concertForm{padding:1.5rem;}
+  #formTitle{font-family:var(--font-display);font-size:1.8rem;letter-spacing:0.03em;color:var(--marquee);margin:0 0 1rem;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.85rem;}
+  .form-grid label, .notes-field{display:flex;flex-direction:column;font-size:0.8rem;color:var(--line);gap:0.3rem;}
+  .form-grid input, .notes-field textarea{
+    background:var(--ink);
+    border:1px solid var(--line);
+    color:var(--text-ink);
+    padding:0.55rem 0.6rem;
+    border-radius:4px;
+    font-family:var(--font-body);
+    font-size:0.9rem;
+  }
+  .notes-field{margin-top:0.85rem;}
+  .notes-field textarea{resize:vertical;}
+  .rating-field{display:flex;align-items:center;gap:0.6rem;margin-top:0.9rem;font-size:0.8rem;color:var(--line);}
+  .stars{display:flex;gap:0.15rem;}
+  .star-btn{background:none;font-size:1.4rem;line-height:1;color:var(--line);padding:0.1rem;}
+  .star-btn.filled{color:var(--marquee);}
+  .form-actions{display:flex;justify-content:space-between;align-items:center;margin-top:1.5rem;}
+  .form-actions-right{display:flex;gap:0.6rem;}
+  @media (max-width:480px){.form-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="hero">
+    <div class="hero-top">
+      <h1 class="wordmark">ENCORE</h1>
+      <button id="addBtn" class="btn-marquee">+ Add show</button>
+    </div>
+    <p class="tagline">your concert history, one stub at a time</p>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <div class="toolbar">
+    <input type="search" id="searchInput" placeholder="Search artist, venue, city…" />
+    <select id="sortSelect">
+      <option value="desc">Newest first</option>
+      <option value="asc">Oldest first</option>
+    </select>
+    <div class="toolbar-actions">
+      <button id="exportCsvBtn" class="btn-ghost">Export CSV</button>
+      <button id="exportJsonBtn" class="btn-ghost">Backup (JSON)</button>
+      <label class="btn-ghost file-label">Restore
+        <input type="file" id="importInput" accept=".json" hidden />
+      </label>
+    </div>
+  </div>
+
+  <main id="list" class="list"></main>
+  <div id="emptyState" class="empty-state" hidden>
+    <p>Your book's empty.</p>
+    <button class="btn-marquee" id="emptyAddBtn">Add your first show</button>
+  </div>
+  <div id="noMatch" class="no-match" hidden>
+    <p>No shows match that search.</p>
+  </div>
+</div>
+
+<dialog id="formDialog">
+  <form id="concertForm">
+    <h2 id="formTitle">Add a show</h2>
+    <input type="hidden" id="entryId" />
+    <div class="form-grid">
+      <label>Date
+        <input type="date" id="fieldDate" required />
+      </label>
+      <label>Headliner
+        <input type="text" id="fieldHeadliner" required placeholder="Tame Impala" />
+      </label>
+      <label>Openers
+        <input type="text" id="fieldOpeners" placeholder="optional" />
+      </label>
+      <label>Venue
+        <input type="text" id="fieldVenue" required placeholder="Moda Center" />
+      </label>
+      <label>City, State
+        <input type="text" id="fieldCity" placeholder="Portland, OR" />
+      </label>
+      <label>Tour
+        <input type="text" id="fieldTour" placeholder="optional" />
+      </label>
+      <label>Went with
+        <input type="text" id="fieldCompany" placeholder="optional" />
+      </label>
+    </div>
+    <div class="rating-field">
+      <span>Rating</span>
+      <div class="stars" id="starPicker"></div>
+    </div>
+    <label class="notes-field">Notes
+      <textarea id="fieldNotes" rows="3" placeholder="what you remember…"></textarea>
+    </label>
+    <div class="form-actions">
+      <button type="button" id="deleteBtn" class="btn-text danger" hidden>Delete this show</button>
+      <div class="form-actions-right">
+        <button type="button" id="cancelBtn" class="btn-ghost">Cancel</button>
+        <button type="submit" class="btn-marquee">Save</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<script>
+(function(){
+  const STORAGE_KEY = 'encoreConcerts';
+  let entries = loadData();
+  let currentRating = 0;
+  let editingId = null;
+
+  const listEl = document.getElementById('list');
+  const emptyStateEl = document.getElementById('emptyState');
+  const noMatchEl = document.getElementById('noMatch');
+  const statsEl = document.getElementById('stats');
+  const searchInput = document.getElementById('searchInput');
+  const sortSelect = document.getElementById('sortSelect');
+  const dialog = document.getElementById('formDialog');
+  const form = document.getElementById('concertForm');
+  const starPicker = document.getElementById('starPicker');
+
+  buildStarPicker();
+  render();
+
+  document.getElementById('addBtn').addEventListener('click', () => openForm());
+  document.getElementById('emptyAddBtn').addEventListener('click', () => openForm());
+  document.getElementById('cancelBtn').addEventListener('click', () => dialog.close());
+  document.getElementById('deleteBtn').addEventListener('click', handleDelete);
+  form.addEventListener('submit', handleSubmit);
+  searchInput.addEventListener('input', render);
+  sortSelect.addEventListener('change', render);
+  document.getElementById('exportCsvBtn').addEventListener('click', exportCSV);
+  document.getElementById('exportJsonBtn').addEventListener('click', exportJSON);
+  document.getElementById('importInput').addEventListener('change', importJSON);
+
+  function loadData(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    }catch(e){
+      console.error('Could not read saved shows', e);
+      return [];
+    }
+  }
+
+  function saveData(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  }
+
+  function buildStarPicker(){
+    starPicker.innerHTML = '';
+    for(let i=1;i<=5;i++){
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'star-btn';
+      b.dataset.value = i;
+      b.textContent = '★';
+      b.addEventListener('click', () => {
+        currentRating = (currentRating === i) ? 0 : i;
+        paintStars();
+      });
+      starPicker.appendChild(b);
+    }
+  }
+
+  function paintStars(){
+    [...starPicker.children].forEach(btn => {
+      btn.classList.toggle('filled', Number(btn.dataset.value) <= currentRating);
+    });
+  }
+
+  function openForm(entry){
+    editingId = entry ? entry.id : null;
+    document.getElementById('formTitle').textContent = entry ? 'Edit show' : 'Add a show';
+    document.getElementById('entryId').value = entry ? entry.id : '';
+    document.getElementById('fieldDate').value = entry ? entry.date : '';
+    document.getElementById('fieldHeadliner').value = entry ? entry.headliner : '';
+    document.getElementById('fieldOpeners').value = entry ? entry.openers : '';
+    document.getElementById('fieldVenue').value = entry ? entry.venue : '';
+    document.getElementById('fieldCity').value = entry ? entry.city : '';
+    document.getElementById('fieldTour').value = entry ? entry.tour : '';
+    document.getElementById('fieldCompany').value = entry ? entry.company : '';
+    document.getElementById('fieldNotes').value = entry ? entry.notes : '';
+    currentRating = entry ? (entry.rating || 0) : 0;
+    paintStars();
+    document.getElementById('deleteBtn').hidden = !entry;
+    dialog.showModal();
+  }
+
+  function handleSubmit(e){
+    e.preventDefault();
+    const data = {
+      id: editingId || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())),
+      date: document.getElementById('fieldDate').value,
+      headliner: document.getElementById('fieldHeadliner').value.trim(),
+      openers: document.getElementById('fieldOpeners').value.trim(),
+      venue: document.getElementById('fieldVenue').value.trim(),
+      city: document.getElementById('fieldCity').value.trim(),
+      tour: document.getElementById('fieldTour').value.trim(),
+      company: document.getElementById('fieldCompany').value.trim(),
+      rating: currentRating,
+      notes: document.getElementById('fieldNotes').value.trim()
+    };
+    if(editingId){
+      entries = entries.map(en => en.id === editingId ? data : en);
+    }else{
+      entries.push(data);
+    }
+    saveData();
+    dialog.close();
+    render();
+  }
+
+  function handleDelete(){
+    if(!editingId) return;
+    if(confirm('Delete this show from your log? This can\'t be undone.')){
+      entries = entries.filter(en => en.id !== editingId);
+      saveData();
+      dialog.close();
+      render();
+    }
+  }
+
+  function stubNumbers(){
+    // chronological order, oldest = 001, stable regardless of current sort/filter
+    const chrono = [...entries].sort((a,b) => (a.date || '').localeCompare(b.date || ''));
+    const map = {};
+    chrono.forEach((en, i) => { map[en.id] = i + 1; });
+    return map;
+  }
+
+  function render(){
+    const numbers = stubNumbers();
+    const query = searchInput.value.trim().toLowerCase();
+    const dir = sortSelect.value;
+
+    let filtered = entries.filter(en => {
+      if(!query) return true;
+      const hay = [en.headliner, en.openers, en.venue, en.city, en.tour].join(' ').toLowerCase();
+      return hay.includes(query);
+    });
+
+    filtered.sort((a,b) => {
+      const cmp = (a.date || '').localeCompare(b.date || '');
+      return dir === 'desc' ? -cmp : cmp;
+    });
+
+    listEl.innerHTML = '';
+    emptyStateEl.hidden = entries.length !== 0;
+    noMatchEl.hidden = !(entries.length > 0 && filtered.length === 0);
+
+    filtered.forEach(en => listEl.appendChild(renderCard(en, numbers[en.id])));
+
+    if(entries.length === 0){
+      statsEl.textContent = '';
+    }else{
+      const years = entries.map(en => (en.date || '').slice(0,4)).filter(Boolean);
+      const minYear = years.length ? Math.min(...years) : null;
+      statsEl.textContent = minYear
+        ? `${entries.length} show${entries.length === 1 ? '' : 's'} logged · since ${minYear}`
+        : `${entries.length} show${entries.length === 1 ? '' : 's'} logged`;
+    }
+  }
+
+  function renderCard(en, stubNo){
+    const card = document.createElement('article');
+    card.className = 'stub-card';
+    card.tabIndex = 0;
+    card.setAttribute('role','button');
+    card.setAttribute('aria-label', `${en.headliner} at ${en.venue}, edit this entry`);
+
+    const info = document.createElement('div');
+    info.className = 'stub-info';
+    info.innerHTML = `
+      <p class="stub-headliner">${escapeHTML(en.headliner)}</p>
+      ${en.openers ? `<p class="stub-openers">with ${escapeHTML(en.openers)}</p>` : ''}
+      <p class="stub-venue">${escapeHTML(en.venue)}</p>
+      ${en.city ? `<p class="stub-city">${escapeHTML(en.city)}</p>` : ''}
+      ${en.tour ? `<p class="stub-tour">${escapeHTML(en.tour)}</p>` : ''}
+      ${en.rating ? `<p class="stub-rating">${'★'.repeat(en.rating)}${'☆'.repeat(5-en.rating)}</p>` : ''}
+      ${en.company ? `<p class="stub-tour">Went with ${escapeHTML(en.company)}</p>` : ''}
+      ${en.notes ? `<p class="stub-notes">${escapeHTML(en.notes)}</p>` : ''}
+    `;
+
+    const perf = document.createElement('div');
+    perf.className = 'stub-perf';
+
+    const tear = document.createElement('div');
+    tear.className = 'stub-tear';
+    const d = parseDate(en.date);
+    tear.innerHTML = d ? `
+      <span class="stub-month">${d.month}</span>
+      <span class="stub-day">${d.day}</span>
+      <span class="stub-year">${d.year}</span>
+      <span class="stub-no">No. ${String(stubNo).padStart(3,'0')}</span>
+    ` : `<span class="stub-no">No. ${String(stubNo).padStart(3,'0')}</span>`;
+
+    card.append(info, perf, tear);
+    const openEdit = () => openForm(en);
+    card.addEventListener('click', openEdit);
+    card.addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openEdit(); } });
+    return card;
+  }
+
+  function parseDate(str){
+    if(!str) return null;
+    const [y,m,d] = str.split('-');
+    if(!y || !m || !d) return null;
+    const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    return { year: y, month: months[Number(m)-1] || '', day: d };
+  }
+
+  function escapeHTML(str){
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+
+  function exportCSV(){
+    const headers = ['Date','Headliner','Openers','Venue','City/State','Tour','Went With','Rating','Notes'];
+    const csvField = v => `"${(v ?? '').toString().replace(/"/g,'""')}"`;
+    const rows = [...entries]
+      .sort((a,b) => (a.date||'').localeCompare(b.date||''))
+      .map(en => [en.date, en.headliner, en.openers, en.venue, en.city, en.tour, en.company, en.rating || '', en.notes]
+        .map(csvField).join(','));
+    const csv = [headers.map(csvField).join(','), ...rows].join('\r\n');
+    downloadBlob(csv, 'text/csv', `concert-log-${todayStr()}.csv`);
+  }
+
+  function exportJSON(){
+    downloadBlob(JSON.stringify(entries, null, 2), 'application/json', `concert-log-backup-${todayStr()}.json`);
+  }
+
+  function importJSON(e){
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try{
+        const imported = JSON.parse(reader.result);
+        if(!Array.isArray(imported)) throw new Error('not an array');
+        const count = imported.length;
+        if(confirm(`Import ${count} show${count===1?'':'s'} from this file? They'll be added to your current log (duplicates possible).`)){
+          imported.forEach(en => {
+            entries.push({
+              id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+              date: en.date || '',
+              headliner: en.headliner || '',
+              openers: en.openers || '',
+              venue: en.venue || '',
+              city: en.city || '',
+              tour: en.tour || '',
+              company: en.company || '',
+              rating: en.rating || 0,
+              notes: en.notes || ''
+            });
+          });
+          saveData();
+          render();
+        }
+      }catch(err){
+        alert('Could not read that file — make sure it\'s a JSON backup exported from this page.');
+      }
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  }
+
+  function downloadBlob(content, type, filename){
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function todayStr(){
+    return new Date().toISOString().slice(0,10);
+  }
+})();
+</script>
+</body>
+</html>
